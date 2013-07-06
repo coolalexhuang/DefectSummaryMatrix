@@ -3,36 +3,36 @@
 <html>
 <head>
   <title>DefectSummaryMatrix</title>
-  <meta name="Name" content="App: DefectSummaryMatrix" />
+  <meta name="Name" content="App: Custom HTML" />
   <meta name="Version" content="2012.11.21" />
   <meta name="Vendor" content="Rally Software" />
 
   <script type ="text/javascript" src="/apps/1.32/sdk.js"></script>
   <script type ="text/javascript">
     function DefectSummaryMatrix() {
-    	var defectData;
+      var defectData;
     	var table;
     	var total = "Total";
-    	var rallyDataSource = new rally.sdk.data.RallyDataSource('__WORKSPACE_OID__', 
-    															'__PROJECT_OID__', 
-    															'__PROJECT_SCOPING_UP__', 
-    															'__PROJECT_SCOPING_DOWN__');
-    	var header = rally.sdk.ui.AppHeader;
-    	header.showPageTools(true);
-    	header.removePageTool("print");
-    	header.addPageTool({
-    		key:"Previous Version",
-    		label:"Previous Version",
-    		onClick:  function() {
-    			if (parent && parent.window && parent.window.location) {
-    				parent.window.location = "http://agilecommons.org/posts/4d4d00c953";
-    			}
-    			else {
-    				window.location = "http://agilecommons.org/posts/4d4d00c953";
-    			}
-    		}
-    	});
-    
+    	var rallyDataSource = new rally.sdk.data.RallyDataSource('2160184711', 
+    															'2530894059', 
+    															'false', 
+    															'true');
+    															    														
+    	//var header = rally.sdk.ui.AppHeader;
+    	//header.showPageTools(false);
+    	//header.removePageTool("print");
+    	//header.addPageTool({
+    	//	key:"Previous Version",
+    	//	label:"Previous Version",
+    	//	onClick:  function() {
+    	//		if (parent && parent.window && parent.window.location) {
+    	//			parent.window.location = "http://agilecommons.org/posts/4d4d00c953";
+    	//		}
+    	//		else {
+    	//			window.location = "http://agilecommons.org/posts/4d4d00c953";
+    	//		}
+    	//	}
+    	//});
     	function initialize3DArray(rows, cols) {
             defectData = [cols];
             for (var c = 0; c <= cols; c++) {
@@ -71,9 +71,11 @@
     
     	// return 3D array by priority, state and list of defects
         function countByPriorityAndState(defectResults) {
-            var maxRow = defectResults.defectPriorities.length;
-            var maxCol = defectResults.defectStates.length;
-    
+            //var maxRow = defectResults.defectPriorities.length - 1 ;
+            //var maxCol = defectResults.defectStates.length - 1;
+    				var maxRow = 5;
+    				var maxCol = 5	;
+    				
             initialize3DArray(maxRow, maxCol);
     
             // cycle through defects and increment the appropriate state/priority combo in the array
@@ -93,7 +95,7 @@
     
         var defectQuery = function() {
             var selected = releaseDropdown.getSelectedName();
-            var releaseQuery = '(Release.Name = "' + selected + '")';
+            var releaseQuery = '(State != "Closed")';
             var queryObject = [];
             queryObject[0] = { key: 'defectStates', type: 'Defect', attribute: 'State' };
             queryObject[1] = { key: 'defectPriorities', type: 'Defect', attribute: 'Priority' };
@@ -105,7 +107,7 @@
             };
             rallyDataSource.findAll(queryObject, populateTable);
         };
-    
+     
         var destroyDefectList = function() {
             if (defectList) {
                 defectList.destroy();
@@ -122,10 +124,23 @@
             var tableDiv = document.getElementById('defects');
             var states = [];
             states[0] = "&nbsp";
-            for (var i = 0; i < results.defectStates.length; i++) {
+            
+      //For debug by Alex Huang on 2013Jul05      
+			//alert("Returned " + results.defectStates.length + " defects states");
+			//for (var i = 0; i < results.defectStates.length; i++) {
+      //          alert(results.defectStates[i]);
+      //      }
+			//alert("Returned " + results.defectPriorities.length + " defects priority");
+			//for (var i = 0; i < results.defectPriorities.length; i++) {
+      //          alert(results.defectPriorities[i]);
+      //     }
+      
+            //for (var i = 0; i < results.defectStates.length - 1; i++) {
+            for (var i = 0; i < 5; i++) {
                 states[i + 1] = results.defectStates[i];
             }
-            states[results.defectStates.length + 1] = total;
+            //states[results.defectStates.length] = total;
+						states[6] = total;
     
             var config = { 'columnKeys': states, 'sortingEnabled' : false };
     
@@ -135,11 +150,16 @@
             table = new rally.sdk.ui.Table(config);
     
             var priorities = [];
-            for (var j = 0; j < results.defectPriorities.length; j++) {
-                priorities[j] = results.defectPriorities[j];
+            //for (var j = 0; j < results.defectPriorities.length - 1; j++) {
+            for (var j = 0; j < 5; j++) {
+            	  priorities[j] = results.defectPriorities[j];
+            	  if(priorities[j] == ''){
+            	  	priorities[j] = 'None';
+            	  }
                 table.setCell(j, 0, priorities[j]);
             }
-            table.setCell(results.defectPriorities.length, 0, total);
+            //table.setCell(results.defectPriorities.length - 1, 0, total);
+            table.setCell(5, 0, total);
     
             countByPriorityAndState(results);
     
@@ -172,9 +192,16 @@
                 displayHeaderDiv.innerHTML = preface + columnText + rowText + "Defects " + postface;
     
                 var displayDiv = dojo.byId('display');
-                var defectConfig = {
-                    'columnKeys': ['FormattedID','Name','State','Priority', 'Owner']
-                };
+                //var defectConfig = {
+                //   'columnKeys': ['FormattedID','Name','State','Priority', 'Owner']
+                //};
+                
+                var defectConfig = { columns: 
+             			[{key: 'FormattedID', header: 'Defect ID', width: "10%"}, 
+             			 {key: 'Name', width: "42%"}, 
+             			 {key: 'State', width: "16%"},
+                   {key: 'Priority', width: "16%"}, 
+                   {key: 'Owner', width: "16%"}] };
     
                 defectList = new rally.sdk.ui.Table(defectConfig);
                 defectList.addRows(defectData[col][row]);
@@ -195,7 +222,7 @@
             }
             table.display(tableDiv);
         };
-    
+        
         var releaseDiv = dojo.byId('release');
         var releaseDropdown = new rally.sdk.ui.ReleaseDropdown({}, rallyDataSource);
         var defectList = null;
@@ -204,6 +231,7 @@
             defectQuery(obj, args);
         };
         releaseDropdown.display(releaseDiv, releaseDropdownWrapper);
+        
     }
 
   </script>
@@ -223,9 +251,12 @@
   <script type="text/javascript">
     function onLoad() {
       var appCustom = new DefectSummaryMatrix();
+      document.getElementById("release").style.display="none"
+      //document.getElementById("appHeadercenterappMessage").style.display="none"
+      //document.getElementById("appHeader").style.display="none"
     }
-
     rally.addOnLoad(onLoad);
+
   </script>
 </head>
 
@@ -239,4 +270,3 @@
   <div id="display"></div>
 </body>
 </html>
-
